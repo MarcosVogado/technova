@@ -1,0 +1,55 @@
+erDiagram
+    USUARIOS {
+        int id PK
+        varchar username UK
+        varchar senha
+        varchar email UK
+        varchar perfil
+        boolean ativo
+        timestamp criado_em
+    }
+
+    CLIENTES {
+        int id PK
+        varchar nome
+        varchar cpf UK
+        varchar email UK
+        varchar telefone
+        text endereco
+        timestamp criado_em
+    }
+
+    PRODUTOS {
+        int id PK
+        varchar nome
+        text descricao
+        varchar categoria
+        decimal preco
+        int quantidade_estoque
+        int estoque_minimo
+        boolean ativo
+        timestamp criado_em
+    }
+
+    VENDAS {
+        int id PK
+        timestamp data
+        decimal valor_total
+        text observacoes
+        int cliente_id FK
+        int usuario_id FK
+    }
+
+    ITENS_VENDA {
+        int id PK
+        int quantidade
+        decimal preco_unitario
+        decimal subtotal
+        int venda_id FK
+        int produto_id FK
+    }
+
+    USUARIOS ||--o{ VENDAS : "registra"
+    CLIENTES ||--o{ VENDAS : "realiza"
+    VENDAS ||--|{ ITENS_VENDA : "contém"
+    PRODUTOS ||--o{ ITENS_VENDA : "referenciado em"

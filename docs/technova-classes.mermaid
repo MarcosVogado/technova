@@ -1,0 +1,88 @@
+classDiagram
+    class Usuario {
+        -int id
+        -String username
+        -String senha
+        -String email
+        -String perfil
+        -boolean ativo
+        -DateTime criado_em
+        +login(username, senha) Token
+        +alterarSenha(novaSenha) void
+        +recuperarSenha(email) void
+    }
+
+    class Cliente {
+        -int id
+        -String nome
+        -String cpf
+        -String email
+        -String telefone
+        -String endereco
+        -DateTime criado_em
+        +validarCpf() bool
+        +validarEmail() bool
+        +possuiVendas() bool
+    }
+
+    class Produto {
+        -int id
+        -String nome
+        -String descricao
+        -String categoria
+        -Decimal preco
+        -int quantidade_estoque
+        -int estoque_minimo
+        -boolean ativo
+        -DateTime criado_em
+        +verificarEstoque(qtd) bool
+        +atualizarEstoque(qtd) void
+        +estoqueAbaixoMinimo() bool
+    }
+
+    class Venda {
+        -int id
+        -DateTime data
+        -Decimal valor_total
+        -String observacoes
+        +calcularTotal() Decimal
+        +adicionarItem(produto, qtd) void
+        +finalizarVenda() void
+    }
+
+    class ItemVenda {
+        -int id
+        -int quantidade
+        -Decimal preco_unitario
+        -Decimal subtotal
+        +calcularSubtotal() Decimal
+    }
+
+    class Relatorio {
+        +vendasPorPeriodo(inicio, fim) List
+        +vendasPorCliente(clienteId) List
+        +graficoAnual(ano) Dict
+    }
+
+    class AuthService {
+        +autenticar(username, senha) Token
+        +validarToken(token) bool
+        +refreshToken(token) Token
+        +enviarEmailRecuperacao(email) void
+    }
+
+    class VendaService {
+        +registrarVenda(cliente, itens, usuario) Venda
+        +validarEstoque(itens) bool
+        +calcularTotal(itens) Decimal
+        +atualizarEstoque(itens) void
+    }
+
+    Usuario "1" -- "*" Venda : registra
+    Cliente "1" -- "*" Venda : realiza
+    Venda "1" -- "1..*" ItemVenda : contém
+    Produto "1" -- "*" ItemVenda : referencia
+    VendaService ..> Venda : cria
+    VendaService ..> Produto : atualiza estoque
+    AuthService ..> Usuario : autentica
+    Relatorio ..> Venda : consulta
