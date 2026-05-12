@@ -1,0 +1,7 @@
+django>=5.0
+djangorestframework
+djangorestframework-simplejwt
+mssql-django
+pyodbc
+django-cors-headers
+python-dotenv
