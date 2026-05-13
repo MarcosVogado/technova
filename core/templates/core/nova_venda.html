@@ -1,0 +1,43 @@
+{% extends 'core/base.html' %}
+
+{% block title %}GERAR_TRANSACAO{% endblock %}
+
+{% block content %}
+<h2 class="neon-title mb-4">Módulo_de_Transações</h2>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="glass-panel p-5">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="text-info small fw-bold">SELECIONAR_CLIENTE</label>
+                    <select name="cliente" class="form-control bg-dark text-white border-secondary">
+                        {% for cliente in clientes %}
+                            <option value="{{ cliente.id }}">{{ cliente.nome }} ({{ cliente.cpf }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-info small fw-bold">PRODUTO_PARA_VENDA</label>
+                    <select name="produto" class="form-control bg-dark text-white border-secondary">
+                        {% for produto in produtos %}
+                            <option value="{{ produto.id }}">{{ produto.nome }} - R$ {{ produto.preco }} (Estoque: {{ produto.quantidade_estoque }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-info small fw-bold">QUANTIDADE_SOLICITADA</label>
+                    <input type="number" name="quantidade" class="form-control bg-dark text-white border-secondary" min="1" value="1">
+                </div>
+
+                <div class="d-grid gap-2 mt-5">
+                    <button type="submit" class="btn btn-info fw-bold py-3">AUTORIZAR_TRANSACAO <i class="bi bi-shield-check"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

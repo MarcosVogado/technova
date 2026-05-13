@@ -1,0 +1,55 @@
+{% extends 'core/base.html' %}
+
+{% block title %}PRODUTOS_SISTEMA{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h2 class="neon-title">Inventário_Central</h2>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="/admin/core/produto/add/" class="btn btn-outline-info btn-sm">ADICIONAR_RECURSO +</a>
+    </div>
+</div>
+
+<div class="glass-panel p-4">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+            <thead>
+                <tr class="text-info">
+                    <th>ID</th>
+                    <th>NOME</th>
+                    <th>CATEGORIA</th>
+                    <th class="text-center">ESTOQUE</th>
+                    <th>PREÇO</th>
+                    <th class="text-center">STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for produto in produtos %}
+                <tr>
+                    <td class="text-muted">#{{ produto.id }}</td>
+                    <td class="fw-bold">{{ produto.nome }}</td>
+                    <td><span class="badge bg-secondary">{{ produto.categoria|default:"GERAL" }}</span></td>
+                    <td class="text-center">
+                        {% if produto.quantidade_estoque <= produto.estoque_minimo %}
+                            <span class="text-danger fw-bold"><i class="bi bi-arrow-down-circle"></i> {{ produto.quantidade_estoque }}</span>
+                        {% else %}
+                            <span class="text-success">{{ produto.quantidade_estoque }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-info">R$ {{ produto.preco }}</td>
+                    <td class="text-center">
+                        {% if produto.ativo %}
+                            <i class="bi bi-check-circle-fill text-success" title="Ativo"></i>
+                        {% else %}
+                            <i class="bi bi-x-circle-fill text-muted" title="Inativo"></i>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
