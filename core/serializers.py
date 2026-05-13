@@ -2,7 +2,7 @@ import re
 from rest_framework import serializers
 from .models import Cliente, Produto, Venda, ItemVenda
 
-# --- CLIENTE ---
+
 class ClienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cliente
@@ -14,7 +14,7 @@ class ClienteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('CPF deve conter 11 dígitos.')
         return value
 
-# --- PRODUTO ---
+
 class ProdutoSerializer(serializers.ModelSerializer):
     estoque_baixo = serializers.ReadOnlyField()
 
@@ -26,7 +26,6 @@ class ProdutoSerializer(serializers.ModelSerializer):
             'estoque_baixo',
         ]
 
-# --- ITENS DA VENDA ---
 class ItemVendaSerializer(serializers.ModelSerializer):
     produto_nome = serializers.ReadOnlyField(source='produto.nome')
 
@@ -40,7 +39,7 @@ class ItemVendaWriteSerializer(serializers.Serializer):
     produto = serializers.IntegerField()
     quantidade = serializers.IntegerField(min_value=1)
 
-# --- VENDA (LEITURA) ---
+
 class VendaSerializer(serializers.ModelSerializer):
     itens = ItemVendaSerializer(many=True, read_only=True)
     cliente_nome = serializers.ReadOnlyField(source='cliente.nome')
@@ -55,7 +54,7 @@ class VendaSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['valor_total', 'usuario']
 
-# --- VENDA (ESCRITA - O QUE ESTAVA FALTANDO!) ---
+
 class VendaCreateSerializer(serializers.Serializer):
     cliente = serializers.IntegerField()
     observacoes = serializers.CharField(required=False, allow_blank=True, default='')

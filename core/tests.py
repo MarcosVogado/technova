@@ -8,12 +8,11 @@ from .services import VendaService
 
 class TechNovaTests(TestCase):
     def setUp(self):
-        # Criar usuário para autenticação
+
         self.user = User.objects.create_user(username='testuser', password='password123')
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        # Criar dados iniciais
         self.cliente = Cliente.objects.create(
             nome="João Teste", 
             cpf="123.456.789-00", 
@@ -28,7 +27,7 @@ class TechNovaTests(TestCase):
 
     def test_registrar_venda_sucesso(self):
         """Testa se a venda é registrada e o estoque é baixado"""
-        # AQUI: Mudado de 'produto' para 'produto_id' para bater com seu services.py
+
         itens_data = [{'produto_id': self.produto.id, 'quantidade': 2}]
         venda = VendaService.registrar_venda(
             cliente=self.cliente,
@@ -65,6 +64,5 @@ class TechNovaTests(TestCase):
             itens_data=[{'produto_id': self.produto.id, 'quantidade': 1}]
         )
         
-        # A API deve retornar 400 porque a ViewSet chama o erro customizado
         response = self.client.delete(f'/api/clientes/{self.cliente.id}/')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

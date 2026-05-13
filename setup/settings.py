@@ -15,8 +15,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework', # Adicionei aqui caso você esteja usando
-    'core',           # Essencial para o erro de app_label sumir
+    'rest_framework', 
+    'core',           
 ]
 
 MIDDLEWARE = [
@@ -49,12 +49,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'setup.wsgi.application'
 
-# --- CONFIGURAÇÃO DO BANCO DE DADOS ---
+
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
         'NAME': 'technova',
-        'HOST': 'localhost\\SQLEXPRESS',  # Adicionamos o \\SQLEXPRESS
+        'HOST': 'localhost\\SQLEXPRESS', 
         'USER': '',
         'PASSWORD': '',
         'OPTIONS': {

@@ -10,7 +10,7 @@ from .serializers import ClienteSerializer, ProdutoSerializer, VendaSerializer, 
 from .services import VendaService
 from .exceptions import ClienteComVendasError
 
-# --- API VIEWSETS (Exigidos pelo Marcos) ---
+
 
 class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
@@ -30,7 +30,6 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 class VendaViewSet(viewsets.ModelViewSet):
-    """Esta é a classe que estava faltando no seu erro!"""
     queryset = Venda.objects.prefetch_related('itens', 'itens__produto').all()
     permission_classes = [IsAuthenticated]
 
@@ -53,7 +52,7 @@ class VendaViewSet(viewsets.ModelViewSet):
         )
         return Response(VendaSerializer(venda).data, status=status.HTTP_201_CREATED)
 
-# --- RELATÓRIOS API ---
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -68,7 +67,7 @@ def relatorio_vendas(request):
         'vendas': VendaSerializer(qs, many=True).data
     })
 
-# --- FRONT-END WEB (Interface Futurista) ---
+
 
 def home_web(request):
     context = {
@@ -81,11 +80,15 @@ def home_web(request):
 def listar_produtos(request):
     return render(request, 'core/produtos.html', {'produtos': Produto.objects.all()})
 
+def lista_vendas_web(request):
+    """Nova tela de histórico solicitada"""
+    vendas = Venda.objects.all().order_by('-data_venda')
+    return render(request, 'core/lista_vendas.html', {'vendas': vendas})
+
 def nova_venda_web(request):
     if request.method == "POST":
         try:
             cliente = get_object_or_404(Cliente, id=request.POST.get('cliente'))
-            # Adaptado para o formato do VendaService do Marcos
             VendaService.registrar_venda(
                 cliente=cliente,
                 usuario=request.user,
@@ -95,7 +98,7 @@ def nova_venda_web(request):
                 }]
             )
             messages.success(request, "TRANSACAO_AUTORIZADA: Sistema atualizado.")
-            return redirect('home')
+            return redirect('lista_vendas') # Redireciona para o histórico após vender
         except Exception as e:
             messages.error(request, f"FALHA_CRITICA: {str(e)}")
     

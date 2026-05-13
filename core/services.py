@@ -9,10 +9,10 @@ class VendaService:
     def registrar_venda(cliente, usuario, itens_data, observacoes=''):
         """Lógica central exigida na Entrega 2 - Ajustada para flexibilidade de chaves"""
         
-        # 1. Validar estoque
+        
         produtos_confirmados = []
         for item in itens_data:
-            # Tenta buscar por 'produto_id', se falhar busca por 'produto'
+            
             p_id = item.get('produto_id') or item.get('produto')
             
             if not p_id:
@@ -25,7 +25,7 @@ class VendaService:
             
             produtos_confirmados.append((produto, item['quantidade']))
 
-        # 2. Criar a venda
+        
         venda = Venda.objects.create(
             cliente=cliente, 
             usuario=usuario, 
@@ -33,7 +33,6 @@ class VendaService:
             valor_total=Decimal('0.00')
         )
 
-        # 3. Baixar estoque e criar itens
         total = Decimal('0.00')
         for produto, qtd in produtos_confirmados:
             subtotal = produto.preco * qtd
@@ -49,7 +48,6 @@ class VendaService:
             produto.save()
             total += subtotal
 
-        # 4. Atualizar total final
         venda.valor_total = total
         venda.save()
         

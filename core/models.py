@@ -40,7 +40,7 @@ class Venda(models.Model):
     data_venda  = models.DateTimeField(auto_now_add=True)
     cliente     = models.ForeignKey(
         Cliente,
-        on_delete=models.PROTECT,  # Impede deletar cliente com vendas
+        on_delete=models.PROTECT,   
         related_name='vendas'
     )
     usuario     = models.ForeignKey(
