@@ -78,12 +78,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # --- Django REST Framework ---
-# A API é protegida por JWT (Bearer token). SessionAuthentication fica disponível
-# apenas para conveniência da API navegável durante o desenvolvimento.
+# A API é protegida EXCLUSIVAMENTE por JWT (Bearer token). Não aceitamos
+# autenticação por sessão/cookie, garantindo que todo acesso exija um token válido.
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
