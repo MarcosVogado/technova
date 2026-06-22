@@ -8,6 +8,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{% static 'core/css/main.css' %}">
+
+    <!-- Cliente da API + guarda de autenticação (antes de renderizar o conteúdo) -->
+    <script src="{% static 'core/js/api.js' %}"></script>
+    <script>TechNovaAPI.requireAuth();</script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg border-bottom border-info mb-4" style="background: var(--panel-dark);">
@@ -16,21 +20,17 @@
                 <i class="bi bi-cpu"></i> TECHNOVA_OS
             </a>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link text-info px-3" href="{% url 'home' %}">DASHBOARD</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-info px-3" href="{% url 'listar_produtos' %}">PRODUTOS</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-info px-3" href="{% url 'nova_venda' %}">NOVA_VENDA</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-info px-3" href="{% url 'lista_vendas' %}">HISTÓRICO</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-warning px-3" href="/admin">ADMIN</a>
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item"><a class="nav-link text-info px-3" href="{% url 'home' %}">DASHBOARD</a></li>
+                    <li class="nav-item"><a class="nav-link text-info px-3" href="{% url 'listar_produtos' %}">PRODUTOS</a></li>
+                    <li class="nav-item"><a class="nav-link text-info px-3" href="{% url 'clientes' %}">CLIENTES</a></li>
+                    <li class="nav-item"><a class="nav-link text-info px-3" href="{% url 'nova_venda' %}">NOVA_VENDA</a></li>
+                    <li class="nav-item"><a class="nav-link text-info px-3" href="{% url 'lista_vendas' %}">HISTÓRICO</a></li>
+                    <li class="nav-item ms-lg-3 d-flex align-items-center">
+                        <span class="badge rounded-pill bg-dark border border-info text-info me-2">
+                            <i class="bi bi-person-circle"></i> <span id="navUser">--</span>
+                        </span>
+                        <button id="btnLogout" class="btn btn-outline-danger btn-sm">SAIR</button>
                     </li>
                 </ul>
             </div>
@@ -38,18 +38,29 @@
     </nav>
 
     <div class="container">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert {% if message.tags == 'success' %}alert-info{% else %}alert-danger{% endif %} glass-panel mb-4" role="alert">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
+        <div id="globalAlert"></div>
         {% block content %}{% endblock %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'core/js/main.js' %}"></script>
+    <script>
+        // Identifica o usuário logado e habilita o logout.
+        document.getElementById('navUser').textContent = TechNovaAPI.getUser() || 'OPERADOR';
+        document.getElementById('btnLogout').addEventListener('click', () => TechNovaAPI.logout());
+
+        // Escapa texto vindo da API antes de injetar no HTML.
+        window.esc = (s) => String(s ?? '').replace(/[&<>"']/g,
+            c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        // Helper global para feedback (substitui as antigas mensagens do Django).
+        window.flash = (msg, tipo = 'info') => {
+            const box = document.getElementById('globalAlert');
+            box.innerHTML = `<div class="alert alert-${tipo} glass-panel mb-4">${msg}</div>`;
+            const el = box.firstElementChild;
+            setTimeout(() => { el.style.transition = '1s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 1000); }, 4000);
+        };
+    </script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

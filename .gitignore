@@ -28,3 +28,6 @@ Thumbs.db
 
 # Variáveis de ambiente
 .env
+
+# Documento de demanda (não versionar)
+docs/demanda-entrega-3.pdf

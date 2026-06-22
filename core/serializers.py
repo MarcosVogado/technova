@@ -8,6 +8,11 @@ class ClienteSerializer(serializers.ModelSerializer):
         model = Cliente
         fields = '__all__'
 
+    def validate_nome(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError('O nome é obrigatório.')
+        return value.strip()
+
     def validate_cpf(self, value):
         cpf_limpo = re.sub(r'\D', '', value)
         if len(cpf_limpo) != 11:
@@ -25,6 +30,26 @@ class ProdutoSerializer(serializers.ModelSerializer):
             'quantidade_estoque', 'estoque_minimo', 'ativo',
             'estoque_baixo',
         ]
+
+    def validate_nome(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError('O nome do produto é obrigatório.')
+        return value.strip()
+
+    def validate_preco(self, value):
+        if value <= 0:
+            raise serializers.ValidationError('O preço deve ser maior que zero.')
+        return value
+
+    def validate_quantidade_estoque(self, value):
+        if value < 0:
+            raise serializers.ValidationError('O estoque não pode ser negativo.')
+        return value
+
+    def validate_estoque_minimo(self, value):
+        if value < 0:
+            raise serializers.ValidationError('O estoque mínimo não pode ser negativo.')
+        return value
 
 class ItemVendaSerializer(serializers.ModelSerializer):
     produto_nome = serializers.ReadOnlyField(source='produto.nome')

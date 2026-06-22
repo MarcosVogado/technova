@@ -10,30 +10,46 @@
 </div>
 
 <div class="row">
-    <div class="col-md-4 mb-4">
+    <div class="col-md-3 mb-4">
         <div class="glass-panel p-4 text-center">
             <i class="bi bi-person-badge text-info h1"></i>
-            <h5 class="text-muted mt-2">CLIENTES_BASE</h5>
-            <h2 class="display-6 fw-bold text-white">{{ total_clientes }}</h2>
+            <h6 class="text-muted mt-2">CLIENTES_BASE</h6>
+            <h2 class="display-6 fw-bold text-white" id="kpiClientes">--</h2>
         </div>
     </div>
-    <div class="col-md-4 mb-4">
+    <div class="col-md-3 mb-4">
         <div class="glass-panel p-4 text-center">
             <i class="bi bi-box-seam text-info h1"></i>
-            <h5 class="text-muted mt-2">PRODUTOS_CATALOGO</h5>
-            <h2 class="display-6 fw-bold text-white">{{ total_produtos }}</h2>
+            <h6 class="text-muted mt-2">PRODUTOS_CATALOGO</h6>
+            <h2 class="display-6 fw-bold text-white" id="kpiProdutos">--</h2>
         </div>
     </div>
-    <div class="col-md-4 mb-4">
+    <div class="col-md-3 mb-4">
+        <div class="glass-panel p-4 text-center">
+            <i class="bi bi-cart-check text-info h1"></i>
+            <h6 class="text-muted mt-2">VENDAS_TOTAL</h6>
+            <h2 class="display-6 fw-bold text-white" id="kpiVendas">--</h2>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
         <div class="glass-panel p-4 text-center" style="border-color: var(--neon-pink);">
             <i class="bi bi-exclamation-octagon h1" style="color: var(--neon-pink);"></i>
-            <h5 class="text-muted mt-2">ALERTAS_ESTOQUE</h5>
-            <h2 class="display-6 fw-bold text-white">{{ produtos_alerta.count }}</h2>
+            <h6 class="text-muted mt-2">ALERTAS_ESTOQUE</h6>
+            <h2 class="display-6 fw-bold text-white" id="kpiAlertas">--</h2>
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="glass-panel p-4 text-center">
+            <h6 class="text-muted"><i class="bi bi-cash-stack text-info"></i> FATURAMENTO_ACUMULADO</h6>
+            <h2 class="fw-bold text-info" id="kpiFaturamento">R$ --</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-2">
     <div class="col-12">
         <div class="glass-panel p-4">
             <h5 class="neon-title mb-4"><i class="bi bi-graph-down"></i> Log_de_Estoque_Crítico</h5>
@@ -47,23 +63,45 @@
                             <th class="text-center">NÍVEL_MÍNIMO</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for produto in produtos_alerta %}
-                        <tr>
-                            <td>#{{ produto.id }}</td>
-                            <td class="fw-bold">{{ produto.nome }}</td>
-                            <td class="text-center"><span class="badge bg-danger">{{ produto.quantidade_estoque }}</span></td>
-                            <td class="text-center text-muted">{{ produto.estoque_minimo }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-4">SISTEMA_ESTÁVEL: Todos os níveis de estoque estão normais.</td>
-                        </tr>
-                        {% endfor %}
+                    <tbody id="tabelaAlertas">
+                        <tr><td colspan="4" class="text-center text-muted py-4">Carregando...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(async function carregarDashboard() {
+    try {
+        const [clientes, produtos, relatorio] = await Promise.all([
+            TechNovaAPI.getJSON('/api/clientes/'),
+            TechNovaAPI.getJSON('/api/produtos/'),
+            TechNovaAPI.getJSON('/api/relatorios/vendas/'),
+        ]);
+
+        const baixo = produtos.filter(p => p.estoque_baixo);
+        document.getElementById('kpiClientes').textContent = clientes.length;
+        document.getElementById('kpiProdutos').textContent = produtos.length;
+        document.getElementById('kpiVendas').textContent = relatorio.resumo.total_vendas;
+        document.getElementById('kpiAlertas').textContent = baixo.length;
+        document.getElementById('kpiFaturamento').textContent = 'R$ ' + relatorio.resumo.valor_total;
+
+        document.getElementById('tabelaAlertas').innerHTML = baixo.length
+            ? baixo.map(p => `
+                <tr>
+                    <td>#${p.id}</td>
+                    <td class="fw-bold">${esc(p.nome)}</td>
+                    <td class="text-center"><span class="badge bg-danger">${p.quantidade_estoque}</span></td>
+                    <td class="text-center text-muted">${p.estoque_minimo}</td>
+                </tr>`).join('')
+            : '<tr><td colspan="4" class="text-center text-muted py-4">SISTEMA_ESTÁVEL: todos os níveis de estoque estão normais.</td></tr>';
+    } catch (e) {
+        flash('Falha ao carregar o dashboard: ' + e.message, 'danger');
+    }
+})();
+</script>
 {% endblock %}

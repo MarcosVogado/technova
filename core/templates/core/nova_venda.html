@@ -6,38 +6,157 @@
 <h2 class="neon-title mb-4">Módulo_de_Transações</h2>
 
 <div class="row">
-    <div class="col-md-8 mx-auto">
-        <div class="glass-panel p-5">
-            <form method="POST">
-                {% csrf_token %}
-                <div class="mb-4">
-                    <label class="text-info small fw-bold">SELECIONAR_CLIENTE</label>
-                    <select name="cliente" class="form-control bg-dark text-white border-secondary">
-                        {% for cliente in clientes %}
-                            <option value="{{ cliente.id }}">{{ cliente.nome }} ({{ cliente.cpf }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
+    <div class="col-lg-5 mb-4">
+        <div class="glass-panel p-4">
+            <h6 class="text-info fw-bold mb-3">1 // IDENTIFICAÇÃO</h6>
+            <div class="mb-3">
+                <label class="text-info small fw-bold">CLIENTE *</label>
+                <select id="selCliente" class="form-select bg-dark text-white border-secondary"></select>
+            </div>
 
-                <div class="mb-4">
-                    <label class="text-info small fw-bold">PRODUTO_PARA_VENDA</label>
-                    <select name="produto" class="form-control bg-dark text-white border-secondary">
-                        {% for produto in produtos %}
-                            <option value="{{ produto.id }}">{{ produto.nome }} - R$ {{ produto.preco }} (Estoque: {{ produto.quantidade_estoque }})</option>
-                        {% endfor %}
-                    </select>
+            <h6 class="text-info fw-bold mb-3 mt-4">2 // ADICIONAR ITEM</h6>
+            <div class="mb-3">
+                <label class="text-info small fw-bold">PRODUTO</label>
+                <select id="selProduto" class="form-select bg-dark text-white border-secondary"></select>
+            </div>
+            <div class="row align-items-end">
+                <div class="col-7 mb-3">
+                    <label class="text-info small fw-bold">QUANTIDADE</label>
+                    <input id="inpQtd" type="number" min="1" value="1" class="form-control bg-dark text-white border-secondary">
                 </div>
+                <div class="col-5 mb-3 d-grid">
+                    <button class="btn btn-outline-info fw-bold" onclick="addItem()">ADICIONAR +</button>
+                </div>
+            </div>
 
-                <div class="mb-4">
-                    <label class="text-info small fw-bold">QUANTIDADE_SOLICITADA</label>
-                    <input type="number" name="quantidade" class="form-control bg-dark text-white border-secondary" min="1" value="1">
-                </div>
+            <div class="mb-2 mt-2">
+                <label class="text-info small fw-bold">OBSERVAÇÕES</label>
+                <textarea id="inpObs" rows="2" class="form-control bg-dark text-white border-secondary"></textarea>
+            </div>
+        </div>
+    </div>
 
-                <div class="d-grid gap-2 mt-5">
-                    <button type="submit" class="btn btn-info fw-bold py-3">AUTORIZAR_TRANSACAO <i class="bi bi-shield-check"></i></button>
-                </div>
-            </form>
+    <div class="col-lg-7 mb-4">
+        <div class="glass-panel p-4">
+            <h6 class="text-info fw-bold mb-3">3 // CARRINHO</h6>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle">
+                    <thead>
+                        <tr class="text-info">
+                            <th>PRODUTO</th><th class="text-center">QTD</th>
+                            <th class="text-end">UNIT.</th><th class="text-end">SUBTOTAL</th><th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaCarrinho">
+                        <tr><td colspan="5" class="text-center text-muted py-3">Carrinho vazio.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 border-top border-secondary pt-3">
+                <h4 class="text-white mb-0">TOTAL</h4>
+                <h3 class="text-info mb-0" id="totalCarrinho">R$ 0,00</h3>
+            </div>
+            <div class="d-grid mt-4">
+                <button id="btnFinalizar" class="btn btn-info fw-bold py-3" onclick="finalizar()" disabled>
+                    AUTORIZAR_TRANSACAO <i class="bi bi-shield-check"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let CLIENTES = [], PRODUTOS = [], CARRINHO = [];
+
+function moeda(v) { return 'R$ ' + Number(v).toFixed(2).replace('.', ','); }
+
+function renderCarrinho() {
+    const tbody = document.getElementById('tabelaCarrinho');
+    let total = 0;
+    if (!CARRINHO.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Carrinho vazio.</td></tr>';
+    } else {
+        tbody.innerHTML = CARRINHO.map((item, idx) => {
+            const sub = item.preco * item.quantidade;
+            total += sub;
+            return `<tr>
+                <td>${esc(item.nome)}</td>
+                <td class="text-center">${item.quantidade}</td>
+                <td class="text-end">${moeda(item.preco)}</td>
+                <td class="text-end text-info">${moeda(sub)}</td>
+                <td class="text-end"><button class="btn btn-sm btn-outline-danger" onclick="removerItem(${idx})"><i class="bi bi-x"></i></button></td>
+            </tr>`;
+        }).join('');
+    }
+    document.getElementById('totalCarrinho').textContent = moeda(total);
+    document.getElementById('btnFinalizar').disabled = CARRINHO.length === 0;
+}
+
+function addItem() {
+    const pid = parseInt(document.getElementById('selProduto').value, 10);
+    const qtd = parseInt(document.getElementById('inpQtd').value, 10);
+    const produto = PRODUTOS.find(p => p.id === pid);
+    if (!produto) { flash('Selecione um produto.', 'danger'); return; }
+    if (!qtd || qtd < 1) { flash('Quantidade inválida.', 'danger'); return; }
+
+    const jaNoCarrinho = CARRINHO.filter(i => i.id === pid).reduce((s, i) => s + i.quantidade, 0);
+    if (qtd + jaNoCarrinho > produto.quantidade_estoque) {
+        flash(`Estoque insuficiente para ${produto.nome} (disponível: ${produto.quantidade_estoque}).`, 'danger');
+        return;
+    }
+
+    const existente = CARRINHO.find(i => i.id === pid);
+    if (existente) existente.quantidade += qtd;
+    else CARRINHO.push({ id: pid, nome: produto.nome, preco: Number(produto.preco), quantidade: qtd });
+    document.getElementById('inpQtd').value = 1;
+    renderCarrinho();
+}
+
+function removerItem(idx) {
+    CARRINHO.splice(idx, 1);
+    renderCarrinho();
+}
+
+async function finalizar() {
+    const clienteId = parseInt(document.getElementById('selCliente').value, 10);
+    if (!clienteId) { flash('Selecione um cliente.', 'danger'); return; }
+    if (!CARRINHO.length) { flash('Adicione ao menos um item.', 'danger'); return; }
+
+    const btn = document.getElementById('btnFinalizar');
+    btn.disabled = true;
+    try {
+        await TechNovaAPI.post('/api/vendas/', {
+            cliente: clienteId,
+            observacoes: document.getElementById('inpObs').value.trim(),
+            itens: CARRINHO.map(i => ({ produto: i.id, quantidade: i.quantidade })),
+        });
+        window.location.href = '/vendas/historico/';
+    } catch (e) {
+        flash('Falha ao registrar a venda: ' + e.message, 'danger');
+        btn.disabled = false;
+    }
+}
+
+(async function carregar() {
+    try {
+        [CLIENTES, PRODUTOS] = await Promise.all([
+            TechNovaAPI.getJSON('/api/clientes/'),
+            TechNovaAPI.getJSON('/api/produtos/'),
+        ]);
+        PRODUTOS = PRODUTOS.filter(p => p.ativo && p.quantidade_estoque > 0);
+
+        document.getElementById('selCliente').innerHTML = CLIENTES.length
+            ? CLIENTES.map(c => `<option value="${c.id}">${esc(c.nome)} (${esc(c.cpf)})</option>`).join('')
+            : '<option value="">Nenhum cliente cadastrado</option>';
+
+        document.getElementById('selProduto').innerHTML = PRODUTOS.length
+            ? PRODUTOS.map(p => `<option value="${p.id}">${esc(p.nome)} — ${moeda(p.preco)} (Estoque: ${p.quantidade_estoque})</option>`).join('')
+            : '<option value="">Nenhum produto disponível</option>';
+    } catch (e) {
+        flash('Falha ao carregar dados: ' + e.message, 'danger');
+    }
+})();
+</script>
 {% endblock %}
