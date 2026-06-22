@@ -1,40 +1,27 @@
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-
-from core.views import (
-    ClienteViewSet,
-    ProdutoViewSet,
-    VendaViewSet,
-    relatorio_vendas,  
-    home_web,
-    listar_produtos,
-    nova_venda_web,
-    lista_vendas_web
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
 )
 
-router = DefaultRouter()
-router.register(r'clientes', ClienteViewSet)
-router.register(r'produtos', ProdutoViewSet)
-router.register(r'vendas', VendaViewSet)
-
 urlpatterns = [
-
     path('admin/', admin.site.urls),
 
-    path('', home_web, name='home'),
-    path('produtos/', listar_produtos, name='listar_produtos'),
-    path('venda/nova/', nova_venda_web, name='nova_venda'),
-    path('vendas/historico/', lista_vendas_web, name='lista_vendas'),
-
-    path('api/', include(router.urls)),
-
+    # Autenticação JWT (pública)
     path('api/auth/login', TokenObtainPairView.as_view(), name='token_obtain'),
     path('api/auth/refresh', TokenRefreshView.as_view(), name='token_refresh'),
 
-    path('api/relatorios/vendas/', relatorio_vendas, name='relatorio_vendas'),
+    # Documentação da API (OpenAPI / Swagger / Redoc)
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
+    # Rotas da aplicação (web + API REST)
+    path('', include('core.urls')),
 ]

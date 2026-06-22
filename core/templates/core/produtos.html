@@ -4,11 +4,9 @@
 
 {% block content %}
 <div class="row mb-4 align-items-center">
-    <div class="col-md-6">
-        <h2 class="neon-title">Inventário_Central</h2>
-    </div>
+    <div class="col-md-6"><h2 class="neon-title">Inventário_Central</h2></div>
     <div class="col-md-6 text-end">
-        <a href="/admin/core/produto/add/" class="btn btn-outline-info btn-sm">ADICIONAR_RECURSO +</a>
+        <button class="btn btn-outline-info btn-sm" onclick="abrirForm()">ADICIONAR_RECURSO +</button>
     </div>
 </div>
 
@@ -17,39 +15,163 @@
         <table class="table table-dark table-hover align-middle">
             <thead>
                 <tr class="text-info">
-                    <th>ID</th>
-                    <th>NOME</th>
-                    <th>CATEGORIA</th>
-                    <th class="text-center">ESTOQUE</th>
-                    <th>PREÇO</th>
-                    <th class="text-center">STATUS</th>
+                    <th>ID</th><th>NOME</th><th>CATEGORIA</th>
+                    <th class="text-center">ESTOQUE</th><th>PREÇO</th>
+                    <th class="text-center">STATUS</th><th class="text-center">AÇÕES</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for produto in produtos %}
-                <tr>
-                    <td class="text-muted">#{{ produto.id }}</td>
-                    <td class="fw-bold">{{ produto.nome }}</td>
-                    <td><span class="badge bg-secondary">{{ produto.categoria|default:"GERAL" }}</span></td>
-                    <td class="text-center">
-                        {% if produto.quantidade_estoque <= produto.estoque_minimo %}
-                            <span class="text-danger fw-bold"><i class="bi bi-arrow-down-circle"></i> {{ produto.quantidade_estoque }}</span>
-                        {% else %}
-                            <span class="text-success">{{ produto.quantidade_estoque }}</span>
-                        {% endif %}
-                    </td>
-                    <td class="text-info">R$ {{ produto.preco }}</td>
-                    <td class="text-center">
-                        {% if produto.ativo %}
-                            <i class="bi bi-check-circle-fill text-success" title="Ativo"></i>
-                        {% else %}
-                            <i class="bi bi-x-circle-fill text-muted" title="Inativo"></i>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
+            <tbody id="tabelaProdutos">
+                <tr><td colspan="7" class="text-center text-muted py-4">Carregando...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
+
+<!-- Modal de cadastro/edição -->
+<div class="modal fade" id="modalProduto" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass-panel text-white">
+            <div class="modal-header border-info">
+                <h5 class="modal-title neon-title" id="produtoTitulo">Novo Produto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formProduto" novalidate>
+                <div class="modal-body">
+                    <input type="hidden" id="produtoId">
+                    <div id="formErro" class="alert alert-danger d-none"></div>
+                    <div class="mb-3">
+                        <label class="text-info small fw-bold">NOME *</label>
+                        <input id="f_nome" class="form-control bg-dark text-white border-secondary" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="text-info small fw-bold">CATEGORIA</label>
+                            <input id="f_categoria" class="form-control bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="text-info small fw-bold">PREÇO (R$) *</label>
+                            <input id="f_preco" type="number" step="0.01" min="0.01" class="form-control bg-dark text-white border-secondary" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="text-info small fw-bold">ESTOQUE *</label>
+                            <input id="f_estoque" type="number" min="0" value="0" class="form-control bg-dark text-white border-secondary" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="text-info small fw-bold">ESTOQUE MÍNIMO</label>
+                            <input id="f_estoque_min" type="number" min="0" value="5" class="form-control bg-dark text-white border-secondary">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-info small fw-bold">DESCRIÇÃO</label>
+                        <textarea id="f_descricao" rows="2" class="form-control bg-dark text-white border-secondary"></textarea>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="f_ativo" checked>
+                        <label class="form-check-label text-muted" for="f_ativo">Produto ativo</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-info fw-bold">SALVAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let PRODUTOS = [];
+let modalProduto;
+
+function render() {
+    const tbody = document.getElementById('tabelaProdutos');
+    tbody.innerHTML = PRODUTOS.length ? PRODUTOS.map(p => `
+        <tr>
+            <td class="text-muted">#${p.id}</td>
+            <td class="fw-bold">${esc(p.nome)}</td>
+            <td><span class="badge bg-secondary">${esc(p.categoria || 'GERAL')}</span></td>
+            <td class="text-center">${p.estoque_baixo
+                ? `<span class="text-danger fw-bold"><i class="bi bi-arrow-down-circle"></i> ${p.quantidade_estoque}</span>`
+                : `<span class="text-success">${p.quantidade_estoque}</span>`}</td>
+            <td class="text-info">R$ ${p.preco}</td>
+            <td class="text-center">${p.ativo
+                ? '<i class="bi bi-check-circle-fill text-success" title="Ativo"></i>'
+                : '<i class="bi bi-x-circle-fill text-muted" title="Inativo"></i>'}</td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-outline-info" onclick="abrirForm(${p.id})"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-danger" onclick="excluir(${p.id})"><i class="bi bi-trash"></i></button>
+            </td>
+        </tr>`).join('')
+        : '<tr><td colspan="7" class="text-center text-muted py-4">Nenhum produto cadastrado.</td></tr>';
+}
+
+function abrirForm(id) {
+    document.getElementById('formProduto').reset();
+    document.getElementById('formErro').classList.add('d-none');
+    document.getElementById('produtoId').value = id || '';
+    document.getElementById('produtoTitulo').textContent = id ? 'Editar Produto' : 'Novo Produto';
+    if (id) {
+        const p = PRODUTOS.find(x => x.id === id);
+        document.getElementById('f_nome').value = p.nome;
+        document.getElementById('f_categoria').value = p.categoria || '';
+        document.getElementById('f_preco').value = p.preco;
+        document.getElementById('f_estoque').value = p.quantidade_estoque;
+        document.getElementById('f_estoque_min').value = p.estoque_minimo;
+        document.getElementById('f_descricao').value = p.descricao || '';
+        document.getElementById('f_ativo').checked = p.ativo;
+    }
+    modalProduto.show();
+}
+
+async function excluir(id) {
+    if (!confirm('Confirma a exclusão deste produto?')) return;
+    try {
+        await TechNovaAPI.del(`/api/produtos/${id}/`);
+        flash('Produto excluído.', 'info');
+        await carregar();
+    } catch (e) { flash(e.message, 'danger'); }
+}
+
+document.getElementById('formProduto').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const erro = document.getElementById('formErro');
+    erro.classList.add('d-none');
+    const id = document.getElementById('produtoId').value;
+    const payload = {
+        nome: document.getElementById('f_nome').value.trim(),
+        categoria: document.getElementById('f_categoria').value.trim(),
+        preco: document.getElementById('f_preco').value,
+        quantidade_estoque: parseInt(document.getElementById('f_estoque').value || '0', 10),
+        estoque_minimo: parseInt(document.getElementById('f_estoque_min').value || '0', 10),
+        descricao: document.getElementById('f_descricao').value.trim(),
+        ativo: document.getElementById('f_ativo').checked,
+    };
+    try {
+        if (id) await TechNovaAPI.put(`/api/produtos/${id}/`, payload);
+        else await TechNovaAPI.post('/api/produtos/', payload);
+        modalProduto.hide();
+        flash('Produto salvo com sucesso.', 'info');
+        await carregar();
+    } catch (err) {
+        erro.textContent = err.message;
+        erro.classList.remove('d-none');
+    }
+});
+
+async function carregar() {
+    try {
+        PRODUTOS = await TechNovaAPI.getJSON('/api/produtos/');
+        render();
+    } catch (e) { flash('Falha ao carregar produtos: ' + e.message, 'danger'); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    modalProduto = new bootstrap.Modal(document.getElementById('modalProduto'));
+    carregar();
+});
+</script>
 {% endblock %}
