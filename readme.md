@@ -17,6 +17,7 @@ O **TechNova** é um ecossistema de gestão comercial focado em eletrônicos, in
 * **Banco (dev):** SQLite (sem instalação extra) — pronto para trocar por SQL Server em produção
 * **Frontend:** HTML5 + JavaScript (fetch) + Bootstrap 5 + Bootstrap Icons
 * **CORS:** `django-cors-headers` (acesso à API por clientes externos)
+* **Documentação:** `drf-spectacular` (OpenAPI 3 + Swagger UI + Redoc)
 * **Qualidade:** Testes unitários e de integração (Django `TestCase` + DRF `APIClient`)
 
 ## 🚀 Funcionalidades
@@ -54,6 +55,32 @@ O projeto isola a lógica de negócio em uma **camada de serviço** (`core/servi
 | `GET` | `/api/relatorios/vendas/` | Resumo consolidado de vendas |
 
 **Regras de negócio validadas:** estoque insuficiente bloqueia a venda; cliente com vendas não pode ser excluído; CPF deve ter 11 dígitos; preço/estoque não podem ser negativos.
+
+## 📖 Documentação interativa da API (Swagger / OpenAPI)
+A API é documentada automaticamente via **drf-spectacular** (OpenAPI 3):
+
+| Recurso | URL |
+| :--- | :--- |
+| **Swagger UI** | http://127.0.0.1:8000/api/docs/ |
+| **Redoc** | http://127.0.0.1:8000/api/redoc/ |
+| **Schema (YAML)** | http://127.0.0.1:8000/api/schema/ |
+
+No **Swagger UI**, use o botão **Authorize** e informe `Bearer <access_token>` (obtido em `/api/auth/login`) para testar os endpoints protegidos diretamente pelo navegador.
+
+## 🔒 Como testar a proteção JWT das rotas
+1. **Sem token** → deve ser negado (HTTP 401):
+   ```bash
+   curl -i http://127.0.0.1:8000/api/produtos/
+   ```
+2. **Obter o token:**
+   ```bash
+   curl -X POST http://127.0.0.1:8000/api/auth/login -H "Content-Type: application/json" -d "{\"username\":\"SEU_USUARIO\",\"password\":\"SUA_SENHA\"}"
+   ```
+3. **Com token** → deve autorizar (HTTP 200):
+   ```bash
+   curl -i http://127.0.0.1:8000/api/produtos/ -H "Authorization: Bearer SEU_ACCESS_TOKEN"
+   ```
+A verificação também é automatizada na suíte de testes (classe `JWTAuthTests`).
 
 ## ⚙️ Como Rodar o Sistema
 

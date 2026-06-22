@@ -21,7 +21,7 @@ class ClienteSerializer(serializers.ModelSerializer):
 
 
 class ProdutoSerializer(serializers.ModelSerializer):
-    estoque_baixo = serializers.ReadOnlyField()
+    estoque_baixo = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Produto

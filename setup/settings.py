@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'drf_spectacular',
     'corsheaders',
     'core',
 ]
@@ -88,6 +89,15 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# --- drf-spectacular (OpenAPI / Swagger) ---
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'TechNova OS — API REST',
+    'DESCRIPTION': 'API de gestão comercial (clientes, produtos e vendas) protegida por JWT.',
+    'VERSION': '3.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 # --- Simple JWT ---

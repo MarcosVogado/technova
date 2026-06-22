@@ -4,6 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Sum, Count
+from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
 from .models import Cliente, Produto, Venda
 from .serializers import ClienteSerializer, ProdutoSerializer, VendaSerializer, VendaCreateSerializer
 from .services import VendaService
@@ -57,6 +59,10 @@ class VendaViewSet(viewsets.ModelViewSet):
         return Response(VendaSerializer(venda).data, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(
+    responses=OpenApiTypes.OBJECT,
+    description='Resumo consolidado de vendas (total de vendas e valor acumulado) + lista de vendas.',
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def relatorio_vendas(request):
