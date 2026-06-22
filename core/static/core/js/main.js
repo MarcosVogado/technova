@@ -48,7 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 4. Auto-hide para as mensagens de alerta (Feedback de Transação)
-    const alertas = document.querySelectorAll('.alert');
+    //    Importante: ignora alertas escondidos (.d-none), como as caixas de erro
+    //    dos formulários (#formErro), para não removê-las do DOM.
+    //    O feedback global é gerenciado por window.flash() (base.html).
+    const alertas = document.querySelectorAll('.alert:not(.d-none)');
     alertas.forEach(alerta => {
         setTimeout(() => {
             alerta.style.opacity = '0';
