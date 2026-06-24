@@ -49,7 +49,7 @@
                         </div>
                         <div class="col-6 mb-3">
                             <label class="text-info small fw-bold">TELEFONE</label>
-                            <input id="c_telefone" class="form-control bg-dark text-white border-secondary">
+                            <input id="c_telefone" class="form-control bg-dark text-white border-secondary" placeholder="(00) 00000-0000" maxlength="15" inputmode="numeric">
                         </div>
                     </div>
                     <div class="mb-3">
@@ -102,7 +102,7 @@ function abrirForm(id) {
         const c = CLIENTES.find(x => x.id === id);
         document.getElementById('c_nome').value = c.nome;
         document.getElementById('c_cpf').value = c.cpf;
-        document.getElementById('c_telefone').value = c.telefone || '';
+        document.getElementById('c_telefone').value = mascaraTelefone(c.telefone || '');
         document.getElementById('c_email').value = c.email;
         document.getElementById('c_endereco').value = c.endereco || '';
     }
@@ -117,6 +117,18 @@ async function excluir(id) {
         await carregar();
     } catch (e) { flash(e.message, 'danger'); }
 }
+
+function mascaraTelefone(v) {
+    v = v.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 10) return v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+    if (v.length > 6)  return v.replace(/^(\d{2})(\d{4})(\d*)$/, '($1) $2-$3');
+    if (v.length > 2)  return v.replace(/^(\d{2})(\d*)$/, '($1) $2');
+    return v.length ? '(' + v : v;
+}
+
+document.getElementById('c_telefone').addEventListener('input', function () {
+    this.value = mascaraTelefone(this.value);
+});
 
 document.getElementById('formCliente').addEventListener('submit', async (e) => {
     e.preventDefault();
