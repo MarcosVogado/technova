@@ -97,7 +97,7 @@ function render() {
             <td class="text-center">${p.estoque_baixo
                 ? `<span class="text-danger fw-bold"><i class="bi bi-arrow-down-circle"></i> ${p.quantidade_estoque}</span>`
                 : `<span class="text-success">${p.quantidade_estoque}</span>`}</td>
-            <td class="text-info">R$ ${p.preco}</td>
+            <td class="text-info">${moeda(p.preco)}</td>
             <td class="text-center">${p.ativo
                 ? '<i class="bi bi-check-circle-fill text-success" title="Ativo"></i>'
                 : '<i class="bi bi-x-circle-fill text-muted" title="Inativo"></i>'}</td>

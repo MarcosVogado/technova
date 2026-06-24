@@ -56,8 +56,8 @@ function abrirDetalhes(id) {
         <tr>
             <td>${esc(i.produto_nome)}</td>
             <td class="text-center">${i.quantidade}</td>
-            <td class="text-end">R$ ${i.preco_unitario}</td>
-            <td class="text-end text-info">R$ ${i.subtotal}</td>
+            <td class="text-end">${moeda(i.preco_unitario)}</td>
+            <td class="text-end text-info">${moeda(i.subtotal)}</td>
         </tr>`).join('');
     document.getElementById('detalhesCorpo').innerHTML = `
         <p class="mb-1"><span class="text-muted">Cliente:</span> ${esc(v.cliente_nome)}</p>
@@ -67,7 +67,7 @@ function abrirDetalhes(id) {
             <thead><tr class="text-info"><th>Produto</th><th class="text-center">Qtd</th><th class="text-end">Unit.</th><th class="text-end">Subtotal</th></tr></thead>
             <tbody>${itens}</tbody>
         </table>
-        <h5 class="text-end text-info mt-3">TOTAL: R$ ${v.valor_total}</h5>`;
+        <h5 class="text-end text-info mt-3">TOTAL: ${moeda(v.valor_total)}</h5>`;
     new bootstrap.Modal(document.getElementById('modalDetalhes')).show();
 }
 
@@ -81,7 +81,7 @@ function abrirDetalhes(id) {
                 <td>${new Date(v.data_venda).toLocaleString('pt-BR')}</td>
                 <td>${esc(v.cliente_nome)}</td>
                 <td>${esc(v.usuario_nome)}</td>
-                <td class="text-success">R$ ${v.valor_total}</td>
+                <td class="text-success">${moeda(v.valor_total)}</td>
                 <td class="text-center"><button class="btn btn-sm btn-outline-info" onclick="abrirDetalhes(${v.id})">Detalhes</button></td>
             </tr>`).join('')
             : '<tr><td colspan="6" class="text-center text-muted py-4">Nenhuma venda registrada ainda.</td></tr>';

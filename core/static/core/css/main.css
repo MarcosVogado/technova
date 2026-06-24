@@ -69,3 +69,7 @@ body {
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
 }
+
+.text-muted {
+    color: #9ab5c8 !important;
+}

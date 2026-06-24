@@ -54,6 +54,8 @@
             c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
         // Helper global para feedback (substitui as antigas mensagens do Django).
+        window.moeda = v => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
         window.flash = (msg, tipo = 'info') => {
             const box = document.getElementById('globalAlert');
             box.innerHTML = `<div class="alert alert-${tipo} glass-panel mb-4">${msg}</div>`;

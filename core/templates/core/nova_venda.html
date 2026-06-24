@@ -70,8 +70,6 @@
 <script>
 let CLIENTES = [], PRODUTOS = [], CARRINHO = [];
 
-function moeda(v) { return 'R$ ' + Number(v).toFixed(2).replace('.', ','); }
-
 function renderCarrinho() {
     const tbody = document.getElementById('tabelaCarrinho');
     let total = 0;

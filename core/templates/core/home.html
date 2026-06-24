@@ -88,7 +88,7 @@
         document.getElementById('kpiProdutos').textContent = produtos.length;
         document.getElementById('kpiVendas').textContent = relatorio.resumo.total_vendas;
         document.getElementById('kpiAlertas').textContent = baixo.length;
-        document.getElementById('kpiFaturamento').textContent = 'R$ ' + relatorio.resumo.valor_total;
+        document.getElementById('kpiFaturamento').textContent = moeda(relatorio.resumo.valor_total);
 
         document.getElementById('tabelaAlertas').innerHTML = baixo.length
             ? baixo.map(p => `
